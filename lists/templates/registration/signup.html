@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="mx-4 md:mx-32 my-16 bg-white shadow p-8 px-8 rounded-sm">
+  <h2 class="text-green-500 font-black text-2xl uppercase text-center">Sign up</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="w-1/6 border px-2 py-1 font-mono text-sm bg-green-400 hover:bg-green-500 active:bg-green-700 text-gray-100">Sign Up</button>
+  </form>
+</div>
+{% endblock %}
