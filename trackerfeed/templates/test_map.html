@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load template_extra %}
+
+{% block content %}
+<h3>Branch Marker Map</h3>
+<div class="container table-responsive">
+    <table class="table table-bordered">
+        <thead>
+        <td>Name</td>
+        <td>X</td>
+        <td>Y</td>
+        <td>Route Type</td>
+        <td>Branch No</td>
+        </thead>
+        <tbody>
+        {% for tests in test %}
+        <tr>
+            <td><a href="https://www.google.com/maps/search/?api=1&query={{tests.polygon.y}}%2C{{tests.polygon.x}}"
+                   target="_blank">{{ tests.name }}</a></td>
+            <td>{{ tests.polygon.x }}</td>
+            <td>{{ tests.polygon.y }}</td>
+            <td>{{ tests.route_type }}</td>
+            <td>{{ tests.branch_no }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!--The div element for the map -->
+<div id="map"></div>
+<div id="hovermap"></div>
+
+
+<!--
+ The `defer` attribute causes the callback to execute after the full HTML
+ document has been parsed. For non-blocking uses, avoiding race conditions,
+ and consistent behavior across browsers, consider loading using Promises
+ with https://www.npmjs.com/package/@googlemaps/js-api-loader.
+-->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcUEhgKm18Ca36RpN63jr2AGWipgQoIL4&callback">
+     defer>
+</script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+<script>
+
+        function initMap() {
+
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 5,
+                center: { lat: {{ test.0.polygon.y }}, lng: {{test.0.polygon.x}} },
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: "",
+                disableAutoPan: true,
+            });
+
+            // Create an array of alphabetical characters used to label the markers.
+            const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            // Add some markers to the map.
+            const markers = locations.map((position, i) => {
+                const label = labels[i % labels.length];
+                const marker = new google.maps.Marker({
+                    position,
+                    label,
+                });
+
+                // markers can only be keyboard focusable when they have click listeners
+                // open info window when marker is clicked
+                marker.addListener("click", () => {
+                    infoWindow.setContent(names[i]);
+                    infoWindow.open(map, marker);
+                });
+                return marker;
+            });
+
+            // Add a marker clusterer to manage the markers.
+            const markerCluster = new markerClusterer.MarkerClusterer({ map, markers });
+        }
+
+        const locations = [
+            {% for tests in test %}
+              { lat: {{ tests.polygon.y }}, lng: {{ tests.polygon.x }} },
+            {% endfor %}
+        ];
+        const names = [
+            {% for tests in test %}
+              "{{ tests.name }}",
+            {% endfor %}
+        ];
+
+
+        window.initMap = initMap();
+
+</script>
+{% endblock content %}

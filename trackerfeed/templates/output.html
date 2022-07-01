@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load template_extra %}
+
+{% block content %}
+<div class="container"><h1>Route Area Table</h1></div>
+<div class="container table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <td>Open New Window</td>
+            <td>Pop-Up Window</td>
+            <td>Route Type</td>
+            <td>Branch No</td>
+        </thead>
+        <tbody>
+        {% for area in areas %}
+        <tr>
+            <td>
+                <a href="polygonmap/{{area.id}}" target="_blank">{{ area.name }}</a>
+            </td>
+            <td>
+                <a href="#" onclick="getData({{area.id}})">{{ area.name }}</a>
+            </td>
+            <td>{{ area.route_type }}</td>
+            <td>{{ area.branch_no }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="map"></div>
+    </div>
+</div>
+<iframe src="https://www.google.com/maps/d/embed?mid=1DvX6lR1B0a_0O1MRCdfbMtolt64MYN4g&ehbc=2E312F" width="640" height="480"></iframe>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcUEhgKm18Ca36RpN63jr2AGWipgQoIL4&callback"> defer>
+
+</script>
+
+<script>
+
+    let map;
+    let infoWindow;
+
+    var modal = document.getElementById("myModal");
+
+    /* Show polygon map in pop-up window */
+    function getData(mapId){
+        $.get({
+            url: 'api/testareas/'+mapId,
+            dataType: "json",
+            success: function(result){
+                polygon = [];
+                console.log(result);
+                for (let i = 1; i < result['0'].polygon.coordinates['0'].length; i++) {
+                    polygon.push( { lat: result['0'].polygon.coordinates['0'][i]['1'], lng: result['0'].polygon.coordinates['0'][i]['0'] });
+                }
+                modal.style.display = "block";
+
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 11,
+                    center: { lat: result['0'].polygon.coordinates['0']['0']['1'], lng: result['0'].polygon.coordinates['0']['0']['0'] },
+                    mapTypeId: "terrain",
+                });
+
+                const polygonField = new google.maps.Polygon({
+                    paths: polygon,
+                    editable: true,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.35,
+                });
+
+                polygonField.setMap(map)
+
+                polygonField.addListener("click", (e)=>{
+                    let contentString =
+                    "<b>"+result['0'].name+"</b><br>"+
+                    "Branch No.: "+result['0'].branch_no+"<br>"+
+                    "Route Type: "+result['0'].route_type+"<br>"
+
+                    infoWindow.setContent(contentString);
+                    infoWindow.setPosition(e.latLng);
+                    infoWindow.open(map);
+                });
+                infoWindow = new google.maps.InfoWindow();
+            }
+        });
+    }
+
+    /* Close map when click close button or other than modal */
+    var span = document.getElementsByClassName("close")[0];
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+</script>
+
+{% endblock content %}

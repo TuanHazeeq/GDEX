@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>{{ area.0.name }}</p>
+<div id="map"></div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcUEhgKm18Ca36RpN63jr2AGWipgQoIL4&callback=initMap"> defer></script>
+<script>
+    /* Show polygon map */
+    let map;
+    let infoWindow;
+
+    function initMap(){
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 11,
+            center: { lat: {{ area.0.cent.y }}, lng: {{ area.0.cent.x }} },
+            mapTypeId: "terrain",
+        });
+        const polygon = [
+            {% for coordinate in area.0.polygon.0 %}
+                { lat: {{ coordinate.1 }}, lng: {{ coordinate.0 }} },
+            {% endfor %}
+        ];
+
+        const polygonField = new google.maps.Polygon({
+            paths: polygon,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.8,
+            strokeWeight: 3,
+            fillColor: "#FF0000",
+            fillOpacity: 0.35,
+        });
+
+        polygonField.setMap(map)
+        polygonField.addListener("click", (e)=>{
+            let contentString =
+            "<b>{{ area.0.name }}</b>"
+
+            infoWindow.setContent(contentString);
+            infoWindow.setPosition(e.latLng);
+            infoWindow.open(map);
+        });
+        infoWindow = new google.maps.InfoWindow();
+    }
+    window.initMap = initMap();
+</script>
+{% endblock content %}

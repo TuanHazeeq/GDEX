@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load template_extra %}
+
+{% block content %}
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.toolbar.min.js"></script>
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+    <div id="pivot-container"></div>
+    <script>
+        var pivot = new WebDataRocks({
+            "container": "pivot-container",
+            "toolbar": false,
+            "report": {
+                "dataSource": {
+                    "data": {{data|safe}}
+                },
+                "options": {
+                    "grid": {
+                        "type": "{{grid_type}}",
+                        "showTotals": "{{grid_total}}",
+                        "showGrandTotals": "{{grid_grandtotal}}",
+                    }
+                },
+
+            }
+        });
+    </script>
+{% endblock content %}
